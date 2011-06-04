@@ -394,6 +394,14 @@ jQuery.fn.best_in_place = function(callback) {
 };
 
 
+jQuery.fn.best_in_place_clear = function(callback) {
+  this.each(function(){
+    // can be screwed over by entering nil data in manually!
+    $(this).text() == $(this).data('nil') ? $(this).text('') : null;
+    $(this).unbind();
+  });
+  return this;
+};
 
 /**
 * @name             Elastic
