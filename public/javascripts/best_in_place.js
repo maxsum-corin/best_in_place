@@ -223,6 +223,12 @@ BestInPlaceEditor.prototype = {
     $(this.element).removeClass('bip_thinking');
     
     var val = JSON.parse(data)[this.attributeName];
+    
+    // for select tags, display the text value, not the key/val value
+    if (this.formType == "select") {
+      val = this.element.data('collection')[val-1][1];  // zero-based
+    };
+      
     this.element.html( this.dressText(val) );
     
     // Binding back after being clicked
@@ -233,7 +239,7 @@ BestInPlaceEditor.prototype = {
     // remove thinking class
     $(this.element).removeClass('bip_thinking');
     
-    this.element.html(this.oldValue);
+    this.element.html( this.dressText(this.oldValue) );
 
     // Display all error messages from server side validation
     $.each(jQuery.parseJSON(request.responseText), function(index, value) {
