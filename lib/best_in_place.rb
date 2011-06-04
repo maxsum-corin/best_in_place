@@ -29,12 +29,18 @@ module BestInPlace
       out << " data-nil='#{opts[:nil].to_s}'" unless opts[:nil].blank?
       out << " data-type='#{opts[:type].to_s}'"
       out << " data-inner-class='#{opts[:inner_class].to_s}'" if opts[:inner_class]
+      out << " data-prefix='#{opts[:prefix].to_s}'" unless opts[:prefix].blank?
+      out << " data-suffix='#{opts[:suffix].to_s}'" unless opts[:suffix].blank?
       if !opts[:sanitize].nil? && !opts[:sanitize]
         out << " data-sanitize='false'>"
+        out << opts[:prefix] unless opts[:prefix].blank?
         out << sanitize(value.to_s, :tags => %w(b i u s a strong em p h1 h2 h3 h4 h5 ul li ol hr pre span img br), :attributes => %w(id class href))
       else
-        out << ">#{sanitize(value.to_s, :tags => nil, :attributes => nil)}"
+        out << ">"
+        out << opts[:prefix] unless opts[:prefix].blank?
+        out << "#{sanitize(value.to_s, :tags => nil, :attributes => nil)}"
       end
+      out << opts[:suffix] unless opts[:suffix].blank?
       out << "</span>"
       raw out
     end
