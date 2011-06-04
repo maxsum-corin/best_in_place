@@ -50,6 +50,11 @@ BestInPlaceEditor.prototype = {
       this.abort();
       return true;
     }
+    if (this.formType == "select" && this.checkValue() == this.oldValue)
+    { // Avoid request if no change is made to select element
+      this.abort();
+      return true;
+    }
     this.isNil = false;
     
     // apply thinking class
@@ -130,6 +135,7 @@ BestInPlaceEditor.prototype = {
   bindForm : function() {
     this.activateForm = BestInPlaceEditor.forms[this.formType].activateForm;
     this.getValue     = BestInPlaceEditor.forms[this.formType].getValue;
+    this.checkValue   = BestInPlaceEditor.forms[this.formType].checkValue;
   },
 
   initNil: function() {
@@ -144,6 +150,10 @@ BestInPlaceEditor.prototype = {
     alert("The form was not properly initialized. getValue is unbound");
   },
 
+  checkValue : function() {
+    alert("The form was not properly initialized. checkValue is unbound");
+  },
+  
   // Trim and Strips HTML from text
   sanitizeValue : function(s) {
     if (this.sanitize)
@@ -227,7 +237,7 @@ BestInPlaceEditor.forms = {
       this.element.find("input").bind('keyup', {editor: this}, BestInPlaceEditor.forms.input.keyupHandler);
     },
 
-    getValue :  function() {
+    getValue : function() {
       return this.sanitizeValue(this.element.find("input").val());
     },
 
@@ -265,6 +275,12 @@ BestInPlaceEditor.forms = {
 
     getValue : function() {
       return this.sanitizeValue(this.element.find("select").val());
+    },
+
+    checkValue : function() {
+      var elm = $(this.element.find("select") );
+      var read = this.sanitizeValue($(":selected",elm).text());
+      return read;
     },
 
     blurHandler : function(event) {
