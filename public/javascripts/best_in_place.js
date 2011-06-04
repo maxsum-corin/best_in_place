@@ -51,6 +51,10 @@ BestInPlaceEditor.prototype = {
       return true;
     }
     this.isNil = false;
+    
+    // apply thinking class
+    $(this.element).addClass('bip_thinking');
+    
     editor.ajax({
       "type"       : "post",
       "dataType"   : "text",
@@ -175,12 +179,20 @@ BestInPlaceEditor.prototype = {
   // Handlers ////////////////////////////////////////////////////////////////
 
   loadSuccessCallback : function(data) {
-    this.element.html(data[this.objectName]);
+    // remove thinking class
+    $(this.element).removeClass('bip_thinking');
+    
+    var val = JSON.parse(data)[this.attributeName];
+    this.element.html( this.dressText(val) );
+    
     // Binding back after being clicked
     $(this.activator).bind('click', {editor: this}, this.clickHandler);
   },
 
   loadErrorCallback : function(request, error) {
+    // remove thinking class
+    $(this.element).removeClass('bip_thinking');
+    
     this.element.html(this.oldValue);
 
     // Display all error messages from server side validation
