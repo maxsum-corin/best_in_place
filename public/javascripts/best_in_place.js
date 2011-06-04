@@ -175,7 +175,7 @@ BestInPlaceEditor.prototype = {
   stripText : function (text) {
     var preIdx = text.indexOf(this.prefixText) == -1 ? 0 : text.indexOf(this.prefixText);
     var preLen = this.prefixText.length;
-    var appIdx = text.lastIndexOf(this.suffixText) == 1 ? 0 : text.lastIndexOf(this.suffixText);
+    var appIdx = text.lastIndexOf(this.suffixText) == -1 ? 0 : text.lastIndexOf(this.suffixText);
     
     return text.substring(preIdx+preLen, appIdx);
   },
