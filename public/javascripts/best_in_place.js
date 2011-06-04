@@ -50,7 +50,7 @@ BestInPlaceEditor.prototype = {
 
   abort : function() {
     if (this.isNil) this.element.html(this.nil);
-    else            this.element.html(this.oldValue);
+    else            this.element.html(this.dressText(this.oldValue));
     $(this.activator).bind('click', {editor: this}, this.clickHandler);
   },
 
