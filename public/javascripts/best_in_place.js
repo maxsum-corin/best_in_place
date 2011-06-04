@@ -19,8 +19,10 @@
         ["falseValue", "trueValue"]
 */
 
-function BestInPlaceEditor(e) {
+function BestInPlaceEditor(e, callback) {
   this.element = jQuery(e);
+  this.callbackFunction = callback;
+  if (callback == null) {this.callbackFunction==null};
   this.initOptions();
   this.bindForm();
   this.initNil();
@@ -32,7 +34,16 @@ BestInPlaceEditor.prototype = {
 
   activate : function() {
     var elem = this.isNil ? "" : this.element.html();
-    this.oldValue = elem;
+        
+    if (this.formType in {"input":1, "textarea":1})
+    {
+      this.oldValue = this.stripText(elem);
+    }
+    else
+    {
+      this.oldValue = elem;
+    }
+    
     $(this.activator).unbind("click", this.clickHandler);
     this.activateForm();
   },
@@ -45,6 +56,7 @@ BestInPlaceEditor.prototype = {
 
   update : function() {
     var editor = this;
+
     if (this.formType in {"input":1, "textarea":1} && this.getValue() == this.oldValue)
     { // Avoid request if no change is made
       this.abort();
@@ -64,7 +76,7 @@ BestInPlaceEditor.prototype = {
       "type"       : "post",
       "dataType"   : "text",
       "data"       : editor.requestData(),
-      "success"    : function(data){ editor.loadSuccessCallback(data); },
+      "success"    : function(data){ editor.loadSuccessCallback(data); editor.callbackFunction(data); },
       "error"      : function(request, error){ editor.loadErrorCallback(request, error); }
     });
     if (this.formType == "select") {
@@ -99,6 +111,8 @@ BestInPlaceEditor.prototype = {
       self.attributeName = self.attributeName || jQuery(this).attr("data-attribute");
       self.nil           = self.nil           || jQuery(this).attr("data-nil");
       self.inner_class   = self.inner_class   || jQuery(this).attr("data-inner-class");
+      self.prefixText    = self.prefixText    || jQuery(this).attr("data-prefix");
+      self.suffixText    = self.suffixText    || jQuery(this).attr("data-suffix");
     });
 
     // Try Rails-id based if parents did not explicitly supply something
@@ -113,11 +127,14 @@ BestInPlaceEditor.prototype = {
     self.url           = self.element.attr("data-url")          || self.url      || document.location.pathname;
     self.collection    = self.element.attr("data-collection")   || self.collection;
     self.formType      = self.element.attr("data-type")         || self.formtype || "input";
+    self.callback      = self.element.attr("data-callback")     || self.callback;
     self.objectName    = self.element.attr("data-object")       || self.objectName;
     self.attributeName = self.element.attr("data-attribute")    || self.attributeName;
     self.activator     = self.element.attr("data-activator")    || self.element;
     self.nil           = self.element.attr("data-nil")          || self.nil      || "-";
     self.inner_class   = self.element.attr("data-inner-class")  || self.inner_class   || null;
+    self.prefixText    = self.element.attr("data-prefix")       || self.prefixText   || "";
+    self.suffixText    = self.element.attr("data-suffix")       || self.suffixText    || "";
 
     if (!self.element.attr("data-sanitize")) {
       self.sanitize = true;
@@ -152,6 +169,19 @@ BestInPlaceEditor.prototype = {
 
   checkValue : function() {
     alert("The form was not properly initialized. checkValue is unbound");
+  },
+  
+  // Strip and Dress text with prefix and suffix values
+  stripText : function (text) {
+    var preIdx = text.indexOf(this.prefixText) == -1 ? 0 : text.indexOf(this.prefixText);
+    var preLen = this.prefixText.length;
+    var appIdx = text.lastIndexOf(this.suffixText) == 1 ? 0 : text.lastIndexOf(this.suffixText);
+    
+    return text.substring(preIdx+preLen, appIdx);
+  },
+  
+  dressText : function (text) {
+    return this.sanitizeValue(this.prefixText + text + this.suffixText);
   },
   
   // Trim and Strips HTML from text
@@ -222,6 +252,7 @@ BestInPlaceEditor.prototype = {
 
 
 BestInPlaceEditor.forms = {
+  
   "input" : {
     activateForm : function() {
       var output = '<form class="form_in_place" action="javascript:void(0)" style="display:inline;">';
@@ -326,6 +357,7 @@ BestInPlaceEditor.forms = {
       this.element.find("textarea").bind('keyup', {editor: this}, BestInPlaceEditor.forms.textarea.keyupHandler);
     },
 
+    // suport strip eventually?
     getValue :  function() {
       return this.sanitizeValue(this.element.find("textarea").val());
     },
@@ -348,9 +380,9 @@ BestInPlaceEditor.forms = {
   }
 };
 
-jQuery.fn.best_in_place = function() {
+jQuery.fn.best_in_place = function(callback) {
   this.each(function(){
-    jQuery(this).data('bestInPlaceEditor', new BestInPlaceEditor(this));
+    jQuery(this).data('bestInPlaceEditor', new BestInPlaceEditor(this, callback));
   });
   return this;
 };
