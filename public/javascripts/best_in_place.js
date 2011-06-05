@@ -159,7 +159,7 @@ BestInPlaceEditor.prototype = {
     if (this.element.html() == "")
     {
       this.isNil = true
-      this.element.html(this.nil)
+      this.element.html("<em>"+this.nil+"</em>")
     }
   },
 
