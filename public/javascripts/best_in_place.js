@@ -222,12 +222,20 @@ BestInPlaceEditor.prototype = {
     // remove thinking class
     $(this.element).removeClass('bip_thinking');
     
-    var val = JSON.parse(data)[this.attributeName];
+    var val = jQuery.parseJSON(data)[this.attributeName];
     
     // for select tags, display the text value, not the key/val value
     if (this.formType == "select") {
-      val = this.element.data('collection')[val-1][1];  // zero-based
-    };
+      arr = this.element.data('collection');
+      for (key in arr)
+      {
+        if (arr[key][0] == val)
+        {
+          val = arr[key][1];
+          break;
+        }
+      }      
+    }
       
     this.element.html( this.dressText(val) );
     
@@ -240,12 +248,22 @@ BestInPlaceEditor.prototype = {
     $(this.element).removeClass('bip_thinking');
     
     this.element.html( this.dressText(this.oldValue) );
-
-    // Display all error messages from server side validation
-    $.each(jQuery.parseJSON(request.responseText), function(index, value) {
-      var container = $("<span class='flash-error'></span>").html(value);
-      container.purr();
-    });
+  
+    var container;
+    try
+    {
+      // Display all error messages from server side validation
+        $.each(jQuery.parseJSON(request.responseText), function(index, value) {
+        container = $("<span class='flash-error'></span>").html(value);
+      });
+    }
+    catch(err)
+    {
+      // error parsing json
+      container = $("<span class='flash-error'></span>").html(request.responseText);
+    }
+    
+    container.purr();
 
     // Binding back after being clicked
     $(this.activator).bind('click', {editor: this}, this.clickHandler);
