@@ -71,6 +71,8 @@ BestInPlaceEditor.prototype = {
     
     // apply thinking class
     $(this.element).addClass('bip_thinking');
+    // remove highlight class
+    $(this.element).removeClass('bip_highlight');
     
     editor.ajax({
       "type"       : "post",
