@@ -49,8 +49,8 @@ BestInPlaceEditor.prototype = {
   },
 
   abort : function() {
-    if (this.isNil) this.element.html(this.nil);
-    else            this.element.html(this.dressText(this.oldValue));
+    if (this.isNil) this.setValue()
+    else            this.setValue(this.oldValue)
     $(this.activator).bind('click', {editor: this}, this.clickHandler);
   },
 
@@ -67,12 +67,12 @@ BestInPlaceEditor.prototype = {
       this.abort();
       return true;
     }
-    this.isNil = false;
+    this.unsetNil();
     
     // apply thinking class
-    $(this.element).addClass('bip_thinking');
+    this.element.addClass('bip_thinking');
     // remove highlight class
-    $(this.element).removeClass('bip_highlight');
+    this.element.removeClass('bip_highlight');
     
     editor.ajax({
       "type"       : "post",
@@ -81,19 +81,8 @@ BestInPlaceEditor.prototype = {
       "success"    : function(data){ editor.loadSuccessCallback(data); editor.callbackFunction(data); },
       "error"      : function(request, error){ editor.loadErrorCallback(request, error); }
     });
-    if (this.formType == "select") {
-      var value = this.getValue();
-      $.each(this.values, function(i, v) {
-        if (value == v[0]) {
-          editor.element.html(v[1]);
-        }
-      }
-    );
-    } else if (this.formType == "checkbox") {
-      editor.element.html(this.getValue() ? this.values[1] : this.values[0]);
-    } else {
-      editor.element.html(this.getValue() != "" ? this.getValue() : this.nil);
-    }
+
+    editor.setValue(editor.getValue())
   },
 
   activateForm : function() {
@@ -154,15 +143,23 @@ BestInPlaceEditor.prototype = {
   bindForm : function() {
     this.activateForm = BestInPlaceEditor.forms[this.formType].activateForm;
     this.getValue     = BestInPlaceEditor.forms[this.formType].getValue;
+    this.setValue     = BestInPlaceEditor.forms[this.formType].setValue;
     this.checkValue   = BestInPlaceEditor.forms[this.formType].checkValue;
   },
 
   initNil: function() {
-    if (this.element.html() == "")
-    {
-      this.isNil = true
-      this.element.html("<em>"+this.nil+"</em>")
-    }
+    this.isNil = (this.element.html() == "")
+    if (this.isNil)
+      this.setValue()
+  },
+
+  unsetNil: function() {
+    this.isNil = false
+    this.element.removeClass('bip_nil')
+  },
+
+  setValue: function(value) {
+    alert("The form was not properly initialized. setValue is unbound");
   },
 
   getValue : function() {
@@ -238,8 +235,8 @@ BestInPlaceEditor.prototype = {
         }
       }      
     }
-      
-    this.element.html( this.dressText(val) );
+    
+    this.setValue(val);
     
     // Binding back after being clicked
     $(this.activator).bind('click', {editor: this}, this.clickHandler);
@@ -249,7 +246,7 @@ BestInPlaceEditor.prototype = {
     // remove thinking class
     $(this.element).removeClass('bip_thinking');
     
-    this.element.html( this.dressText(this.oldValue) );
+    this.setValue(this.oldValue);
   
     var container;
     try
@@ -298,6 +295,18 @@ BestInPlaceEditor.forms = {
       return this.sanitizeValue(this.element.find("input").val());
     },
 
+    setValue: function(value) {
+      value = value || ""
+      this.isNil = (value == "")
+      if (this.isNil) {
+        this.element.addClass('bip_nil')
+        this.element.html(this.nil)
+      } else {
+        this.element.removeClass('bip_nil')
+        this.element.html(this.dressText(value))
+      }
+    },
+
     inputBlurHandler : function(event) {
       event.data.editor.update();
     },
@@ -334,6 +343,13 @@ BestInPlaceEditor.forms = {
       return this.sanitizeValue(this.element.find("select").val());
     },
 
+    setValue: function(value) {
+      $.each(this.values, function(i, v) {
+        if (value == v[0])
+          this.element.html(v[1]);
+      });
+    },
+
     checkValue : function() {
       var elm = $(this.element.find("select") );
       var read = this.sanitizeValue($(":selected",elm).text());
@@ -359,7 +375,11 @@ BestInPlaceEditor.forms = {
 
     getValue : function() {
       return Boolean(this.element.html() == this.values[1]);
-    }
+    },
+
+    setValue: function(value) {
+      this.element.html(value ? this.values[1] : this.values[0]);
+    },
   },
 
   "textarea" : {
@@ -386,6 +406,18 @@ BestInPlaceEditor.forms = {
     // suport strip eventually?
     getValue :  function() {
       return this.sanitizeValue(this.element.find("textarea").val());
+    },
+
+    setValue: function(value) {
+      value = value || ""
+      this.isNil = (value == "")
+      if (this.isNil) {
+        this.element.addClass('bip_nil')
+        this.element.html(this.nil)
+      } else {
+        this.element.removeClass('bip_nil')
+        this.element.html(value)
+      }
     },
 
     blurHandler : function(event) {
