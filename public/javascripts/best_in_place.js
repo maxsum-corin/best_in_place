@@ -33,17 +33,7 @@ BestInPlaceEditor.prototype = {
   // Public Interface Functions //////////////////////////////////////////////
 
   activate : function() {
-    var elem = this.isNil ? "" : this.element.html();
-        
-    if (this.formType in {"input":1, "textarea":1})
-    {
-      this.oldValue = this.stripText(elem);
-    }
-    else
-    {
-      this.oldValue = elem;
-    }
-    
+    this.oldValue = this.bip_value;
     $(this.activator).unbind("click", this.clickHandler);
     this.activateForm();
   },
@@ -148,9 +138,10 @@ BestInPlaceEditor.prototype = {
   },
 
   initNil: function() {
-    this.isNil = (this.element.html() == "")
+    this.bip_value = this.stripText(this.element.html());
+    this.isNil = (this.bip_value == "");
     if (this.isNil)
-      this.setValue()
+      this.setValue();
   },
 
   unsetNil: function() {
@@ -305,6 +296,7 @@ BestInPlaceEditor.forms = {
         this.element.removeClass('bip_nil')
         this.element.html(this.dressText(value))
       }
+      this.bip_value = value
     },
 
     inputBlurHandler : function(event) {
@@ -348,6 +340,7 @@ BestInPlaceEditor.forms = {
         if (value == v[0])
           this.element.html(v[1]);
       });
+      this.bip_value = value;
     },
 
     checkValue : function() {
@@ -379,6 +372,7 @@ BestInPlaceEditor.forms = {
 
     setValue: function(value) {
       this.element.html(value ? this.values[1] : this.values[0]);
+      this.bip_value = value;
     },
   },
 
@@ -409,15 +403,7 @@ BestInPlaceEditor.forms = {
     },
 
     setValue: function(value) {
-      value = value || ""
-      this.isNil = (value == "")
-      if (this.isNil) {
-        this.element.addClass('bip_nil')
-        this.element.html(this.nil)
-      } else {
-        this.element.removeClass('bip_nil')
-        this.element.html(value)
-      }
+      BestInPlaceEditor.forms.input.setValue.call(this, value);
     },
 
     blurHandler : function(event) {
